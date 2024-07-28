@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nộp Bài</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Nộp Bài</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message|safe }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+        <label for="assignment">Tên bài tập:</label>
+        <input type="text" name="assignment" id="assignment" required>
+        <label for="file">Chọn tệp:</label>
+        <input type="file" name="file" id="file" required>
+        <button type="submit">Tải lên</button>
+    </form>
+    <h2>Bài đã nộp</h2>
+    <table>
+        <tr>
+            <th>Tên tệp</th>
+            <th>Điểm</th>
+            <th>Bài tập</th>
+        </tr>
+        {% for submission in submissions %}
+        <tr>
+            <td>{{ submission.filename }}</td>
+            <td>{{ submission.score }}</td>
+            <td>{{ submission.assignment }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
+<h2>Nạp Test Mới</h2>
+<form id="upload-form" action="{{ url_for('upload_test') }}" method="post" enctype="multipart/form-data">
+    <label for="assignment_name">Tên bài tập:</label>
+    <input type="text" name="assignment_name" id="assignment_name" required>
+    <br>
+    <label for="test_folder">Chọn thư mục test:</label>
+    <input type="file" name="test_folder" id="test_folder" webkitdirectory directory required>
+    <br>
+    <input type="submit" value="Nạp Test">
+</form>

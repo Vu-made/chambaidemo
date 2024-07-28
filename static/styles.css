@@ -1,0 +1,66 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+h1, h2 {
+    color: #333;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+}
+
+input[type="text"],
+input[type="file"] {
+    display: block;
+    margin-top: 5px;
+}
+
+button {
+    margin-top: 10px;
+    padding: 5px 10px;
+}
+
+.flashes {
+    list-style-type: none;
+    padding: 0;
+}
+
+.flashes li {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    white-space: pre-line; /* Giữ định dạng xuống dòng */
+}
+
+.flashes li.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.flashes li.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
