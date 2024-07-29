@@ -26,6 +26,18 @@
         <input type="file" name="file" id="file" required>
         <button type="submit">Tải lên</button>
     </form>
+
+    <h2>Nạp Test Mới</h2>
+    <form id="upload-form" action="{{ url_for('upload_test') }}" method="post" enctype="multipart/form-data">
+        <label for="assignment_name">Tên bài tập:</label>
+        <input type="text" name="assignment_name" id="assignment_name" required>
+        <br>
+        <label for="test_folder">Chọn thư mục test:</label>
+        <input type="file" name="test_folder" id="test_folder" webkitdirectory directory required>
+        <br>
+        <input type="submit" value="Nạp Test">
+    </form>
+
     <h2>Bài đã nộp</h2>
     <table>
         <tr>
@@ -41,15 +53,15 @@
         </tr>
         {% endfor %}
     </table>
+
+    <script>
+        document.getElementById('upload-form').onsubmit = function(e) {
+            const testFolder = document.getElementById('test_folder').files;
+            if (testFolder.length === 0) {
+                alert('Vui lòng chọn thư mục test.');
+                e.preventDefault();
+            }
+        };
+    </script>
 </body>
 </html>
-<h2>Nạp Test Mới</h2>
-<form id="upload-form" action="{{ url_for('upload_test') }}" method="post" enctype="multipart/form-data">
-    <label for="assignment_name">Tên bài tập:</label>
-    <input type="text" name="assignment_name" id="assignment_name" required>
-    <br>
-    <label for="test_folder">Chọn thư mục test:</label>
-    <input type="file" name="test_folder" id="test_folder" webkitdirectory directory required>
-    <br>
-    <input type="submit" value="Nạp Test">
-</form>

@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['TEST_FOLDER'] = 'test'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///grades.db'
 app.secret_key = 'supersecretkey'
 
@@ -42,14 +43,30 @@ def upload_file():
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
-        print(f"File path: {file_path}")
         result, score = run_tests(file_path, assignment)
-        print(f"Test result: {result}, Score: {score}")
         new_submission = Submission(filename=filename, score=score, assignment=assignment)
         db.session.add(new_submission)
         db.session.commit()
         flash(result, 'success' if score == 100 else 'error')
         return redirect(url_for('index'))
+
+@app.route('/upload_test', methods=['POST'])
+def upload_test():
+    if 'test_folder' not in request.files:
+        flash('Không có phần thư mục', 'error')
+        return redirect(request.url)
+    assignment_name = request.form.get('assignment_name')
+    if not assignment_name:
+        flash('Tên bài tập không được chỉ định', 'error')
+        return redirect(request.url)
+    test_folder = request.files.getlist('test_folder')
+    for file in test_folder:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['TEST_FOLDER'], assignment_name, filename)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        file.save(file_path)
+    flash('Nạp test thành công!', 'success')
+    return redirect(url_for('index'))
 
 def run_tests(file_path, assignment):
     file_extension = os.path.splitext(file_path)[1]
@@ -59,7 +76,7 @@ def run_tests(file_path, assignment):
         return "Loại tệp không được hỗ trợ", 0
 
 def run_cpp_tests(file_path, assignment):
-    test_dir = f'test/{assignment}'
+    test_dir = os.path.join(app.config['TEST_FOLDER'], assignment)
     test_cases = [d for d in os.listdir(test_dir) if os.path.isdir(os.path.join(test_dir, d))]
     total_tests = len(test_cases)
     passed_tests = 0
@@ -68,26 +85,21 @@ def run_cpp_tests(file_path, assignment):
     executable_path = file_path.replace('.cpp', '')
 
     try:
-        # Biên dịch tệp C++ thành tệp thực thi
         compile_result = subprocess.run(['g++', file_path, '-o', executable_path], capture_output=True, text=True)
         if compile_result.returncode != 0:
-            print(f"Biên dịch thất bại: {compile_result.stderr}")
             return f"Biên dịch thất bại: {compile_result.stderr}", 0
 
-        # Chạy các bài kiểm tra
         for test_case in sorted(test_cases):
             input_file = os.path.join(test_dir, test_case, f'{assignment}.inp')
             output_file = os.path.join(test_dir, test_case, f'{assignment}.out')
 
-            # Đảm bảo các tệp đầu vào và đầu ra khớp với tên được sử dụng trong chương trình C++
             if not os.path.exists(input_file) or not os.path.exists(output_file):
                 fail_messages.append(f"Tệp không tồn tại: {input_file} hoặc {output_file}")
                 continue
 
-            # Chạy chương trình C++
             result = subprocess.run([executable_path], text=True, capture_output=True, input=open(input_file, 'r').read())
             actual_output = result.stdout.strip()
-            
+
             with open(output_file, 'r') as outp:
                 expected_output = outp.read().strip()
 
@@ -97,7 +109,6 @@ def run_cpp_tests(file_path, assignment):
                 fail_messages.append(f"Sai ở {test_case}: dự kiến {expected_output}, nhưng nhận được {actual_output}")
 
     except Exception as e:
-        print(f"Exception: {str(e)}")
         return str(e), 0
     finally:
         if os.path.exists(executable_path):
@@ -110,28 +121,9 @@ def run_cpp_tests(file_path, assignment):
         fail_summary = "<br>".join(fail_messages)
         return f"{fail_summary}<br>Điểm: {score}", score
 
-@app.route('/upload_test', methods=['POST'])
-def upload_test():
-    if 'test_file' not in request.files:
-        flash('Không có phần tệp', 'error')
-        return redirect(request.url)
-    file = request.files['test_file']
-    if file.filename == '':
-        flash('Không có tệp nào được chọn', 'error')
-        return redirect(request.url)
-    assignment_name = request.form.get('assignment_name')
-    if not assignment_name:
-        flash('Tên bài tập không được chỉ định', 'error')
-        return redirect(request.url)
-    if file:
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], assignment_name, filename)
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        file.save(file_path)
-        flash('Nạp test thành công!', 'success')
-        return redirect(url_for('index'))
-
 if __name__ == "__main__":
     if not os.path.exists('uploads'):
         os.makedirs('uploads')
+    if not os.path.exists('test'):
+        os.makedirs('test')
     app.run(debug=True)

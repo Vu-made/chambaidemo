@@ -1,0 +1,6 @@
+for /l %%i in (1,1,9) do md "test0%%i"
+for /l %%i in (1,1,9) do copy "%%i.in" "test0%%i\FORMATION.INP"
+for /l %%i in (1,1,9) do copy "%%i.out" "test0%%i\FORMATION.OUT"
+for /l %%i in (10,1,20) do md "test%%i"
+for /l %%i in (10,1,20) do copy "%%i.in" "test%%i\FORMATION.INP"
+for /l %%i in (10,1,20) do copy "%%i.out" "test%%i\FORMATION.OUT"
